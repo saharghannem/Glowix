@@ -19,7 +19,7 @@ service cloud.firestore {
       // Identity isolation: Only specific emails or domain
       return isVerified() && (
         request.auth.token.email.endsWith("@admin.com") || 
-        request.auth.token.email == "ghannemsahar79@gmail.com"
+        request.auth.token.email == "mail"
       );
     }
 
