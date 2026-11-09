@@ -17,6 +17,10 @@ web-build/
 */.env.local
 .env.*.local
 */.env.*.local
+*.local.*
+*/*.local.*
+*/*/*.local.*
+*/*/*/*.local.*
 !.env.example
 !*/.env.example
 

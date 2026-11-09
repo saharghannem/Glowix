@@ -1,14 +1,15 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCRNmP2YpQDvaGm6UmWObhiZCr3_s_qheM",
-  authDomain: "mobile-6375f.firebaseapp.com",
-  databaseURL: "https://mobile-6375f-default-rtdb.firebaseio.com",
-  projectId: "mobile-6375f",
-  storageBucket: "mobile-6375f.firebasestorage.app",
-  messagingSenderId: "115104863084",
-  appId: "1:115104863084:web:7e2aadca5d00296a0d1949"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);

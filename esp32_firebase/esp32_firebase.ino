@@ -41,8 +41,8 @@ const char* apPass = "12345678";
 // FIREBASE CONFIG
 // =====================================================
 
-#define API_KEY             "AIzaSyCRNmP2YpQDvaGm6UmWObhiZCr3_s_qheM"
-#define FIREBASE_PROJECT_ID "mobile-6375f"
+#define API_KEY             "YOUR_FIREBASE_API_KEY"
+#define FIREBASE_PROJECT_ID "YOUR_FIREBASE_PROJECT_ID"
 
 FirebaseData   fbdo;
 FirebaseAuth   auth;

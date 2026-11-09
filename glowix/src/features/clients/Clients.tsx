@@ -139,8 +139,7 @@ const Clients: React.FC<ClientsProps> = ({ externalSearch }) => {
     const fetchCountries = async () => {
       setIsLoadingCountries(true);
       const apiKey = (import.meta as any).env?.VITE_REST_COUNTRIES_API_KEY || 
-                     process.env.VITE_REST_COUNTRIES_API_KEY || 
-                     'rc_live_03e039c95191437bbbe9a754ecc6f50f';
+                     process.env.VITE_REST_COUNTRIES_API_KEY || '';
       const urlParams = 'response_fields=names.common,codes.alpha_2,flag.emoji,flag.svg,flag.png,geo.latlng&limit=250';
 
       try {

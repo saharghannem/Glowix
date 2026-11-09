@@ -5,7 +5,7 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
-  const countryApiKey = env.VITE_REST_COUNTRIES_API_KEY || env.REST_COUNTRIES_API_KEY || 'rc_live_03e039c95191437bbbe9a754ecc6f50f';
+  const countryApiKey = env.VITE_REST_COUNTRIES_API_KEY || env.REST_COUNTRIES_API_KEY || '';
 
   return {
     plugins: [react(), tailwindcss()],
