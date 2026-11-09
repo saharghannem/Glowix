@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Primitives ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Identity isolation: Only specific emails or domain
+      return isVerified() && (
+        request.auth.token.email.endsWith("@admin.com") || 
+        request.auth.token.email == "ghannemsahar79@gmail.com"
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- Entity Validations ---
+    function isValidClient(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'subscription', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 256 &&
+             data.email is string && data.email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') &&
+             data.phone is string && data.phone.size() < 50 &&
+             data.subscription is map &&
+             data.subscription.status in ['active', 'expired', 'pending', 'unpaid', 'ending-soon', 'terminated'];
+    }
+
+    function isValidDevice(data) {
+      return data.keys().hasAll(['name', 'clientId', 'status', 'lastSeen', 'isPaid', 'isBlocked']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.clientId is string &&
+             data.status in ['active', 'inactive', 'terminated', 'error'];
+    }
+
+    function isValidTelemetry(data) {
+      return data.keys().hasAll(['deviceId', 'values', 'timestamp']) &&
+             data.deviceId is string &&
+             data.values is map &&
+             data.timestamp is int;
+    }
+
+    function isValidAlert(data) {
+      return data.keys().hasAll(['deviceId', 'message', 'timestamp', 'type', 'severity', 'isSeen']) &&
+             data.message is string && data.message.size() < 1000 &&
+             data.severity in ['info', 'warning', 'critical'] &&
+             data.isSeen is bool;
+    }
+
+    // --- Application Routes ---
+
+    match /clients/{clientId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(clientId) && isValidClient(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidClient(incoming()) && (
+        // Action: Standard Update
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'email', 'phone', 'subscription', 'totalBill', 'contractHistory']) &&
+        incoming().createdAt == existing().createdAt // Immutable field
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /plans/{planId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin(); // Simple gate for master data
+    }
+
+    match /devices/{deviceId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(deviceId) && isValidDevice(incoming());
+      allow update: if isAdmin() && isValidDevice(incoming()) && (
+        // Action: Client can only change status/isBlocked via Admin
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'status', 'isPaid', 'lastSeen', 'isBlocked'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /telemetry/{dataId} {
+      // In prod, this would use resource.data.clientId linked to Auth
+      // For this demo dashboard, we'll keep it simple but validated
+      allow create: if isValidId(dataId) && isValidTelemetry(incoming());
+      allow read: if isAdmin();
+      // list queries must be secured by client/device context in prod
+      allow list: if isAdmin(); 
+    }
+
+    match /alerts/{alertId} {
+      allow create: if isValidId(alertId) && isValidAlert(incoming());
+      allow read: if isAdmin();
+      allow update: if isAdmin() && (
+        // Action: Mark as seen
+        incoming().diff(existing()).affectedKeys().hasOnly(['isSeen'])
+      );
+    }
+  }
+}

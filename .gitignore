@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production builds
+dist/
+*/dist/
+build/
+*/build/
+web-build/
+*/web-build/
+
+# Environment and secrets
+.env
+*/.env
+.env.local
+*/.env.local
+.env.*.local
+*/.env.*.local
+!.env.example
+!*/.env.example
+
+# Expo & Mobile
+.expo/
+*/.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# System files
+.DS_Store
+Thumbs.db
+

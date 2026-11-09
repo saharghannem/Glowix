@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "Client": {
+      "title": "Client",
+      "description": "Information about a client and their subscription status.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "totalBill": { "type": "number" },
+        "address": {
+          "type": "object",
+          "properties": {
+            "country": { "type": "string" },
+            "city": { "type": "string" },
+            "countryCode": { "type": "string" },
+            "flagUrl": { "type": "string" },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "lat": { "type": "number" },
+                "lng": { "type": "number" }
+              }
+            }
+          }
+        },
+        "subscription": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["active", "expired", "pending", "unpaid", "ending-soon", "terminated"] },
+            "startDate": { "type": "string", "format": "date-time" },
+            "endDate": { "type": "string", "format": "date-time" },
+            "isFirstMonthFree": { "type": "boolean" },
+            "planId": { "type": "string" },
+            "billingCycle": { "type": "string", "enum": ["monthly", "yearly"] },
+            "customPrice": { "type": "number" },
+            "paymentStatus": { "type": "string", "enum": ["paid", "unpaid", "pending"] },
+            "paymentMethod": { "type": "string" }
+          }
+        },
+        "contractHistory": {
+          "type": "array",
+          "items": { "$ref": "#/entities/Client/properties/subscription" }
+        }
+      },
+      "required": ["name", "email", "phone", "createdAt", "subscription"]
+    },
+    "Plan": {
+      "title": "Plan",
+      "description": "Subscription offers for clients.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "maxDevices": { "type": "integer" },
+        "pricingModel": { "type": "string", "enum": ["flat", "per_device"] },
+        "features": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "price", "maxDevices", "pricingModel", "features"]
+    },
+    "Device": {
+      "title": "Device",
+      "description": "IoT device registration and status.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "clientId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive", "terminated", "error"] },
+        "isPaid": { "type": "boolean" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "isBlocked": { "type": "boolean" }
+      },
+      "required": ["name", "clientId", "status", "lastSeen", "isPaid", "isBlocked"]
+    },
+    "TelemetryData": {
+      "title": "TelemetryData",
+      "description": "Real-time readings from IoT devices.",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "values": { 
+          "type": "object",
+          "description": "Dynamic key-value pairs representing sensor data or metrics (e.g., { temp: 22, load: 85 })."
+        },
+        "timestamp": { "type": "integer" }
+      },
+      "required": ["deviceId", "values", "timestamp"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "System alerts triggered by abnormal device readings.",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "integer" },
+        "type": { "type": "string" },
+        "value": { "type": "number" },
+        "severity": { "type": "string" },
+        "eventKey": { "type": "string" }
+      },
+      "required": ["deviceId", "message", "timestamp", "type", "value"]
+    }
+  },
+  "firestore": {
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Main collection for SaaS clients."
+    },
+    "/plans/{planId}": {
+      "schema": "Plan",
+      "description": "Available subscription tiers."
+    },
+    "/devices/{deviceId}": {
+      "schema": "Device",
+      "description": "Master list of registered IoT devices."
+    },
+    "/telemetry/{dataId}": {
+      "schema": "TelemetryData",
+      "description": "Timeseries data from devices."
+    },
+    "/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "Log of triggered alerts."
+    }
+  }
+}

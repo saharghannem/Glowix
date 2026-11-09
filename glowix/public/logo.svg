@@ -1,0 +1,31 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glowix-gradient-main" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2FF" />
+      <stop offset="100%" stop-color="#8E2DE2" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background ring -->
+  <circle cx="50" cy="50" r="48" stroke="url(#glowix-gradient-main)" stroke-width="0.5" opacity="0.2" />
+
+  <!-- Stylized 'G' Node -->
+  <path
+    d="M 82 50 A 32 32 0 1 1 76 30"
+    stroke="url(#glowix-gradient-main)"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Connection Line -->
+  <path d="M 60 50 H 82" stroke="url(#glowix-gradient-main)" stroke-width="12" stroke-linecap="round" />
+
+  <!-- Core Data Point -->
+  <circle cx="50" cy="50" r="10" fill="white" />
+  <circle cx="50" cy="50" r="6" fill="url(#glowix-gradient-main)" />
+
+  <!-- Signal Strength Indicators -->
+  <path d="M 70 20 A 40 40 0 0 1 80 30" stroke="url(#glowix-gradient-main)" stroke-width="4" stroke-linecap="round" />
+  <path d="M 80 10 A 50 50 0 0 1 90 20" stroke="url(#glowix-gradient-main)" stroke-width="4" stroke-linecap="round" />
+</svg>

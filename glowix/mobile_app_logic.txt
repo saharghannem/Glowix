@@ -1,0 +1,111 @@
+# MOBILE APP ACCESS CONTROL LOGIC (CLIENT-SIDE)
+==================================================
+
+Project: Glowix Ecosystem
+Author: System Architect
+Purpose: Implementation guide for Mobile Client Application
+
+To ensure consistency with the Admin Dashboard's contract enforcement, the mobile app 
+MUST implement the following verification logic before allowing hardware interaction.
+
+--------------------------------------------------
+1. AUTHENTICATION & INITIALIZATION
+--------------------------------------------------
+- PATH: /clients/{clientId}
+- TRIGGER: On App Launch / On Resume
+- LOGIC: Fetch the current client document. If the document does not exist, force logout.
+
+--------------------------------------------------
+2. THE "EFFECTIVE STATUS" ALGORITHM
+--------------------------------------------------
+Before rendering the dashboard, calculate the client's status using this hierarchy:
+
+[RANK 1: TERMINATED] 
+- IF client.subscription.status == 'terminated'
+- ACTION: BLOCK ACCESS. Redirect to "Account Deactivated" screen.
+
+[RANK 2: UNPAID / DELINQUENT]
+- IF client.subscription.paymentStatus == 'unpaid'
+- ACTION: APPLY LEDGER LOCK. 
+- UI: Show "Payment Overdue" banner.
+- PERMISSION: Disable all outbound commands (write operations) to devices. 
+- VIEW: Keep telemetry readable (read-only mode).
+
+[RANK 3: EXPIRED]
+- IF CURRENT_DATE > client.subscription.endDate
+- ACTION: SUSPEND SERVICE. 
+- UI: Show "Contract Expired" screen.
+- PERMISSION: Disable all device interactions. 
+
+[RANK 4: WARNING (ENDING SOON)]
+- IF CURRENT_DATE is within 7 days of client.subscription.endDate
+- ACTION: PERMIT FULL ACCESS + WARNING.
+- UI: Persistent "Renewal Due Soon" notification.
+
+[RANK 5: ACTIVE]
+- IF status is 'active' AND paymentStatus is 'paid' AND within dates.
+- ACTION: FULL UNRESTRICTED ACCESS.
+
+--------------------------------------------------
+3. DEVICE-LEVEL HARDENING
+--------------------------------------------------
+For every device in the list (/devices where clientId == current_id):
+
+- IF Client Status is NOT 'active':
+    - OVERLAY: Apply a "Locked" state to the device card.
+    - INTERACTION: Prevents toggles, slider changes, or configuration updates.
+    - FEEDBACK: "Controls disabled due to account standing."
+
+--------------------------------------------------
+4. SECURITY SYNC (FIRESTORE RULES)
+--------------------------------------------------
+Ensure your mobile app requests are compatible with these server-side rules:
+- Users should only be allowed to READ their own client document.
+- Users should only be allowed to READ devices where clientId matches their UID.
+- Write access should be rejected by rules if subscription.status != 'active'.
+
+--------------------------------------------------
+4. FINANCIAL ENFORCEMENT (DEVICE LEVEL)
+--------------------------------------------------
+- ATTR: device.isPaid (boolean)
+- SYNC LOGIC: 
+    - If Client paymentStatus becomes 'unpaid', Admin set device.isPaid = false.
+    - If Client paymentStatus becomes 'paid', Admin set device.isPaid = true.
+- MOBILE BEHAVIOR:
+    - IF device.isPaid == false:
+        - SHUTDOWN: Force device to 'inactive' or 'suspended' visuals.
+        - BLOCK: User cannot trigger any cloud-to-device commands.
+        - MESSAGE: "Service suspended due to outstanding invoice."
+
+--------------------------------------------------
+5. DATA AGNOSTIC RENDERING
+--------------------------------------------------
+- PATH: /telemetry/{dataId}
+- DATA: Access telemetry.values (map).
+- LOGIC: 
+    - The app MUST not hardcode sensor keys (like 'temperature').
+    - Iterate over Object.keys(telemetry.values).
+    - Map each key to a UI "Card" or "Metric" widget.
+    - If the value is Numeric, enable "Chart View".
+
+--------------------------------------------------
+6. DEVICE ONBOARDING & ACTIVATION FLOW
+--------------------------------------------------
+- INITIAL STATE: When a device is provisioned by Admin, its status is set to 'inactive'.
+- ACTIVATION TRIGGER: The device MUST reach 'active' status via the Mobile App.
+- PROCESS:
+    1. User receives hardware and powers it on.
+    2. Mobile App detects device via BLE/AP Mode (Local).
+    3. User configures WiFi credentials for the device.
+    4. Upon successful Cloud handshake, the Mobile App updates the device document:
+       - status: 'active'
+       - lastSeen: current_timestamp
+- RESTRICTION: Telemetry and Control functions are only available AFTER this transition.
+
+--------------------------------------------------
+6. USER MESSAGING STRINGS
+--------------------------------------------------
+- EXPIRED: "Your service contract has reached its termination date. Please contact support for renewal."
+- UNPAID: "An outstanding balance has been detected. System control functions are suspended until settlement."
+- TERMINATED: "Your account has been decommissioned by the platform administrator."
+- INACTIVE: "Device pending activation. Please complete WiFi setup to begin monitoring."
